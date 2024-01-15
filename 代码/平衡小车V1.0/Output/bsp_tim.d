@@ -1,5 +1,5 @@
-..\output\bsp_tim.o: ..\Hardware\control\bsp_tim.c
-..\output\bsp_tim.o: ..\Hardware\./control/bsp_tim.h
+..\output\bsp_tim.o: ..\Hardware\tim\bsp_tim.c
+..\output\bsp_tim.o: ..\Hardware\./tim/bsp_tim.h
 ..\output\bsp_tim.o: ..\User\main.h
 ..\output\bsp_tim.o: ..\Libraries\CMSIS\stm32f10x.h
 ..\output\bsp_tim.o: ..\Libraries\CMSIS\core_cm3.h
@@ -34,9 +34,10 @@
 ..\output\bsp_tim.o: C:\Software\STM32_soft\Keil\ARM\ARMCC\Bin\..\include\string.h
 ..\output\bsp_tim.o: ..\Sys\./delay/bsp_delay.h
 ..\output\bsp_tim.o: ..\Hardware\./oled/oled.h
-..\output\bsp_tim.o: ..\Hardware\./uart/bsp_uart.h
+..\output\bsp_tim.o: ..\Hardware\./gyro/gyro.h
 ..\output\bsp_tim.o: ..\User\main.h
 ..\output\bsp_tim.o: ..\Hardware\./motor/motor.h
 ..\output\bsp_tim.o: ..\Hardware\./control/control.h
 ..\output\bsp_tim.o: ..\Hardware\./motor/motor_encoder.h
-..\output\bsp_tim.o: ..\Hardware\./control/bsp_tim.h
+..\output\bsp_tim.o: ..\Hardware\./nvic/bsp_nvic.h
+..\output\bsp_tim.o: ..\Hardware\./tim/bsp_tim.h

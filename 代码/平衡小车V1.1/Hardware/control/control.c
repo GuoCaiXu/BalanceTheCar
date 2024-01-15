@@ -11,30 +11,32 @@ float Turn_Speed=0;       //期望速度（偏航）
 
 // 直立环Kp、Kd
 float Vertical_Kp= 200;    // 212
-float Vertical_Kd= 5.4;     // 5.4
+float Vertical_Kd= 0;     // 5.4
 
 // 速度环Kp、Ki（正反馈）
-float Velocity_Kp=0.67;    // 0.67                                                                                         
-float Velocity_Ki=0.67/200;
+float Velocity_Kp=0;    // 0.67                                                                                         
+float Velocity_Ki=0;
  
 float Turn_Kp=0;
-float Turn_Kd=13;
+float Turn_Kd=0;
 
 int Vertical_out,Velocity_out,Turn_out; // 直立环&速度环&转向环的输 出变量
 
-int test1, test2, test3;
+int test1, test2;
 
 int Vertical(float Med,float Angle,float gyro);
 int Velocity(int Target,int encoder_left,int encoder_right);
 int Turn(int gyro_Z, int RC);
 void Pick_Up_Test(void);
 
-void TIM3_IRQHandler(void){
+uint8_t Control_PID(void){
 
   int PWM_out;
   int Encoder_Left, Encoder_Right;
   int MOTO1, MOTO2;
-  if (TIM_GetITStatus(TIM3, TIM_IT_Update) == SET){
+
+  if (Gyro_GetRxFlag() == 1){
+    
     // 1.采集编码器数据&陀螺仪角度信息
     // 电机是相对安装，刚好相差180度，为了编码器输出极性一致，就需要对其中一个取反
     Encoder_Left  = -Read_Speed(4); 
@@ -42,28 +44,26 @@ void TIM3_IRQHandler(void){
 
     test1 = Encoder_Left;
     test2 = Encoder_Right;
-    if (Gyro_GetRxFlag() == 1){
-    
-      Control_GetAngle(&gyro, &euler, &acc);
-      //Pick_Up_Test();
 
-      // 2.将数据压入闭环控制中，计算出控制输出量
-      Vertical_out=Vertical(Med_Angle,euler.Roll, gyro.gyro_x);			    // 直立环
-      Velocity_out=Velocity(Target_Speed,Encoder_Left,Encoder_Right);                 // 速度环
-      Turn_out=Turn(gyro.gyro_z, Turn_Speed);	
+    Control_GetAngle(&gyro, &euler, &acc);
+    //Pick_Up_Test();
 
-      PWM_out=Vertical_out - Vertical_Kp * Velocity_out;//最终输出
-      test3 = PWM_out;
-    
-      // 3.把控制输出量加载到电机上，完成最终控制
-      MOTO1 = PWM_out-Turn_out; // 左电机
-      MOTO2 = PWM_out+Turn_out; // 右电机
-      Limit(&MOTO1,&MOTO2);     // PWM限幅
-      if (Pick_Up_Flag == 1) Load(MOTO1,MOTO2);        // 加载到电机上
-      else Load(0,0);
-    }
-    TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
+    // 2.将数据压入闭环控制中，计算出控制输出量
+    Vertical_out=Vertical(Med_Angle,euler.Roll, gyro.gyro_x);			    // 直立环
+    //Velocity_out=Velocity(Target_Speed,Encoder_Left,Encoder_Right);                 // 速度环
+    //Turn_out=Turn(gyro.gyro_z, Turn_Speed);	
+
+    PWM_out=Vertical_out - Vertical_Kp * Velocity_out;//最终输出
+  
+    // 3.把控制输出量加载到电机上，完成最终控制
+    MOTO1 = (Pick_Up_Flag == 1)?(PWM_out-Turn_out):0;
+    MOTO2 = (Pick_Up_Flag == 1)?(PWM_out+Turn_out):0;
+    Limit(&MOTO1,&MOTO2);     // PWM限幅
+    Load(MOTO1,MOTO2);        // 加载到电机上
+
+    return 1;
   }
+  return 0;
 }
 
 /*****************  

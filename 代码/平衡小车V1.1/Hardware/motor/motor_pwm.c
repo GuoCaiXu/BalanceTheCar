@@ -2,12 +2,9 @@
 
 void PWM_Init(void){
 
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_TIM1 | RCC_APB2Periph_AFIO, ENABLE);
 
     GPIO_InitTypeDef    GPIO_InitStructure;
-
     GPIO_InitStructure.GPIO_Pin = Left_PWM_OUT | Right_PWM_OUT;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -18,8 +15,8 @@ void PWM_Init(void){
     
     TIM_TimeBaseStructInit(&TIM_TimeBaseInitStructure);
     TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
-    TIM_TimeBaseInitStructure.TIM_Period = PWM_ARR_Period;
-    TIM_TimeBaseInitStructure.TIM_Prescaler = PWM_PSC_Prescaler;
+    TIM_TimeBaseInitStructure.TIM_Period = 7200-1;
+    TIM_TimeBaseInitStructure.TIM_Prescaler = 1-1;
     TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM1, &TIM_TimeBaseInitStructure);
 

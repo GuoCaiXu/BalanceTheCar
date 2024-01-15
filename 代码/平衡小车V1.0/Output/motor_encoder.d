@@ -34,8 +34,10 @@
 ..\output\motor_encoder.o: C:\Software\STM32_soft\Keil\ARM\ARMCC\Bin\..\include\string.h
 ..\output\motor_encoder.o: ..\Sys\./delay/bsp_delay.h
 ..\output\motor_encoder.o: ..\Hardware\./oled/oled.h
-..\output\motor_encoder.o: ..\Hardware\./uart/bsp_uart.h
+..\output\motor_encoder.o: ..\Hardware\./gyro/gyro.h
 ..\output\motor_encoder.o: ..\User\main.h
 ..\output\motor_encoder.o: ..\Hardware\./motor/motor.h
 ..\output\motor_encoder.o: ..\Hardware\./control/control.h
 ..\output\motor_encoder.o: ..\Hardware\./motor/motor_encoder.h
+..\output\motor_encoder.o: ..\Hardware\./nvic/bsp_nvic.h
+..\output\motor_encoder.o: ..\Hardware\./tim/bsp_tim.h

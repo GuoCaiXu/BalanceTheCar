@@ -1,29 +1,24 @@
+/*
+ * @Author: xgc030920@outlook.com
+ * @Date: 2024-01-02 16:15:34
+ * @LastEditors: xgc030920@outlook.com
+ * @LastEditTime: 2024-01-15 15:20:02
+ * @FilePath: \Project_EIDEc:\SyncFile\03-Project\04-平衡小车C8T6\代码\平衡小车V1.1\Hardware\motor\motor_pwm.h
+ * @Description: 
+ * 
+ * Copyright (c) 2024 by ${git_name_email}, All Rights Reserved. 
+ */
 # ifndef _MOTOR_PWM_H
 # define _MOTOR_PWM_H
 
-# include "main.h"
-
-/*定时器定义*/
-# define PWM_TIMx                   TIM3                  
-# define PWM_TIM_APBxClock_FUN      RCC_APB1PeriphClockCmd
-# define PWM_TIM_CLK                RCC_APB1Periph_TIM3
-
-/*配置ARR 和PSC*/
-# define PWM_ARR_Period             (7200-1)
-# define PWM_PSC_Prescaler          (1-1)
+# include "main.h"            
 
 /*输出通道1*/
-# define PWM_TIM_CH1_GPIO_CLK       RCC_APB2Periph_GPIOA
-# define PWM_TIM_CH1_PORT           GPIOA
-# define PWM_TIM_CH1_PIN            GPIO_Pin_6
+# define Left_PWM_OUT               GPIO_Pin_8
 
 /*输出通道2*/
-# define PWM_TIM_CH2_GPIO_CLK       RCC_APB2Periph_GPIOA
-# define PWM_TIM_CH2_PORT           GPIOA
-# define PWM_TIM_CH2_PIN            GPIO_Pin_7   
+# define Right_PWM_OUT              GPIO_Pin_11   
 
 void PWM_Init(void);
-void PWMA_SetCompare1(uint16_t Compare1);
-void PWMB_SetCompare2(uint16_t Compare1);
 
 # endif

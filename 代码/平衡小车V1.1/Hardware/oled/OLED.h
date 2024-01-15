@@ -4,11 +4,11 @@
 # include "stm32f10x.h"
 
 /*引脚配置*/
-#define OLED_W_SCL(x)		GPIO_WriteBit(GPIOB, GPIO_Pin_8, (BitAction)(x))
-#define OLED_W_SDA(x)		GPIO_WriteBit(GPIOB, GPIO_Pin_9, (BitAction)(x))
+#define OLED_W_SCL(x)		GPIO_WriteBit(GPIOB, OLED_SCL_PIN, (BitAction)(x))
+#define OLED_W_SDA(x)		GPIO_WriteBit(GPIOB, OLED_SDA_PIN, (BitAction)(x))
 
-# define OLED_SCL_PIN       GPIO_Pin_8
-# define OLED_SDA_PIN       GPIO_Pin_9
+# define OLED_SCL_PIN       GPIO_Pin_13
+# define OLED_SDA_PIN       GPIO_Pin_12
 
 /*OLED初始化*/
 void OLED_Init(void);

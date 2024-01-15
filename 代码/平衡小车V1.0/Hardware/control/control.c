@@ -1,49 +1,69 @@
 # include "./control/control.h"
 
-Gyro        gyro;
-EulerAngle  euler;
-uint8_t     AngleGyro_Arr[12];
-uint8_t     Pick_Up_Flag = 1;
+Acceleration  acc;
+EulerAngle    euler;
+Gyro          gyro;
+uint8_t       Pick_Up_Flag = 1;
 
-float Med_Angle=0.4;      // 机械中值，能使得小车真正平衡住的角度 
+float Med_Angle=0;      // 机械中值，能使得小车真正平衡住的角度 
 float Target_Speed=0;	    // 期望速度。---二次开发接口，用于控制小车前进后退及其速度。
 float Turn_Speed=0;       //期望速度（偏航）
 
 // 直立环Kp、Kd
-float Vertical_Kp= 200;    // 525
-float Vertical_Kd= 12;     // 25
-
-// float Vertical_Kp= 0;    // 525
-// float Vertical_Kd= 0;     // 25
-
-// float Velocity_Kp=0;    
-// float Velocity_Ki=0;
+float Vertical_Kp= 200;    // 212
+float Vertical_Kd= 0;     // 5.4
 
 // 速度环Kp、Ki（正反馈）
-float Velocity_Kp=0.4;    
-float Velocity_Ki=0.00215;
+float Velocity_Kp=0;    // 0.67                                                                                         
+float Velocity_Ki=0;
  
 float Turn_Kp=0;
-float Turn_Kd=12;
+float Turn_Kd=0;
 
-int Vertical_out,Velocity_out,Turn_out; // 直立环&速度环&转向环的输出变量
+int Vertical_out,Velocity_out,Turn_out; // 直立环&速度环&转向环的输 出变量
 
-int test;
+int test1, test2;
 
-void Control_Init(void){
+int Vertical(float Med,float Angle,float gyro);
+int Velocity(int Target,int encoder_left,int encoder_right);
+int Turn(int gyro_Z, int RC);
+void Pick_Up_Test(void);
 
-  Motor_Init();
-}
+uint8_t Control_PID(void){
 
-void Control_GetAngle(void){
+  int PWM_out;
+  int Encoder_Left, Encoder_Right;
+  int MOTO1, MOTO2;
+
+  if (Gyro_GetRxFlag() == 1){
     
-  gyro.gyro_x = ((int16_t)((AngleGyro_Arr[1] << 8) | AngleGyro_Arr[0]) / 32768.0f) * 2000.0f;
-  gyro.gyro_y = ((int16_t)((AngleGyro_Arr[3] << 8) | AngleGyro_Arr[2]) / 32768.0f) * 2000.0f;
-  gyro.gyro_z = ((int16_t)((AngleGyro_Arr[5] << 8) | AngleGyro_Arr[4]) / 32768.0f) * 2000.0f;
-  euler.Roll  = ((int16_t)((AngleGyro_Arr[7] << 8) | AngleGyro_Arr[6]) / 32768.0f) * 180.0f;
-  euler.Pitch = ((int16_t)((AngleGyro_Arr[9] << 8) | AngleGyro_Arr[8]) / 32768.0f) * 180.0f;
-  euler.Yaw   = ((int16_t)((AngleGyro_Arr[11] << 8) | AngleGyro_Arr[10]) / 32768.0f) * 180.0f;
-  memset(AngleGyro_Arr, 12, 0x00);
+    // 1.采集编码器数据&陀螺仪角度信息
+    // 电机是相对安装，刚好相差180度，为了编码器输出极性一致，就需要对其中一个取反
+    Encoder_Left  = -Read_Speed(4); 
+    Encoder_Right = Read_Speed(2);
+
+    test1 = Encoder_Left;
+    test2 = Encoder_Right;
+
+    Control_GetAngle(&gyro, &euler, &acc);
+    //Pick_Up_Test();
+
+    // 2.将数据压入闭环控制中，计算出控制输出量
+    Vertical_out=Vertical(Med_Angle,euler.Roll, gyro.gyro_x);			    // 直立环
+    //Velocity_out=Velocity(Target_Speed,Encoder_Left,Encoder_Right);                 // 速度环
+    //Turn_out=Turn(gyro.gyro_z, Turn_Speed);	
+
+    PWM_out=Vertical_out - Vertical_Kp * Velocity_out;//最终输出
+  
+    // 3.把控制输出量加载到电机上，完成最终控制
+    MOTO1 = (Pick_Up_Flag == 1)?(PWM_out-Turn_out):0;
+    MOTO2 = (Pick_Up_Flag == 1)?(PWM_out+Turn_out):0;
+    Limit(&MOTO1,&MOTO2);     // PWM限幅
+    Load(MOTO1,MOTO2);        // 加载到电机上
+
+    return 1;
+  }
+  return 0;
 }
 
 /*****************  
@@ -52,11 +72,11 @@ void Control_GetAngle(void){
 入口：Med:机械中值(期望角度)，Angle:真实角度，gyro_Y:真实角速度
 出口：直立环输出
 ******************/
-int Vertical(float Med,float Angle,float gyro_Y) 
+int Vertical(float Med,float Angle,float gyro) 
 {
   int PWM_out;
   
-  PWM_out = Vertical_Kp*(Angle-Med)+Vertical_Kd*(gyro_Y-0);
+  PWM_out = Vertical_Kp*(Angle-Med)+Vertical_Kd*(gyro-0);
   
   return PWM_out;
 }
@@ -73,25 +93,27 @@ int Velocity(int Target,int encoder_left,int encoder_right)
   if (Pick_Up_Flag == 0){
 
     PWM_out=Encoder_Err=Encoder_S=EnC_Err_Lowout=EnC_Err_Lowout_last=0;
-  }
 
-  // 1.计算速度偏差
-  //舍去误差--我的理解：能够让速度为"0"的角度，就是机械中值。
-  Encoder_Err = ((encoder_left+encoder_right)-Target);
-  test = Encoder_Err;
-  // 2.对速度偏差进行低通滤波
-  // low_out = (1-a)*Ek+a*low_out_last
-  EnC_Err_Lowout = (1-a)*Encoder_Err + a*EnC_Err_Lowout_last; // 使得波形更加平滑，滤除高频干扰，放置速度突变
-  EnC_Err_Lowout_last = EnC_Err_Lowout;   // 防止速度过大影响直立环的正常工作
-  // 3.对速度偏差积分出位移
-  Encoder_S+=EnC_Err_Lowout;
-  // 4.积分限幅
-  Encoder_S=Encoder_S>10000?10000:(Encoder_S<(-10000)?(-10000):Encoder_S);
-  
-  // 5.速度环控制输出
-  PWM_out = Velocity_Kp*EnC_Err_Lowout+Velocity_Ki*Encoder_S;
-  
-  return PWM_out;
+    return 0;
+  }
+  else {
+    // 1.计算速度偏差
+    //舍去误差--我的理解：能够让速度为"0"的角度，就是机械中值。
+    Encoder_Err = ((encoder_left+encoder_right)-Target);
+    // 2.对速度偏差进行低通滤波
+    // low_out = (1-a)*Ek+a*low_out_last
+    EnC_Err_Lowout = (1-a)*Encoder_Err + a*EnC_Err_Lowout_last; // 使得波形更加平滑，滤除高频干扰，放置速度突变
+    EnC_Err_Lowout_last = EnC_Err_Lowout;   // 防止速度过大影响直立环的正常工作
+    // 3.对速度偏差积分出位移
+    Encoder_S+=EnC_Err_Lowout;
+    // 4.积分限幅
+    Encoder_S=Encoder_S>10000?10000:(Encoder_S<(-10000)?(-10000):Encoder_S);
+    
+    // 5.速度环控制输出
+    PWM_out = Velocity_Kp*EnC_Err_Lowout+Velocity_Ki*Encoder_S;
+    
+    return PWM_out;
+  }
 }
 
 /*****************  
@@ -138,39 +160,3 @@ void Pick_Up_Test(void){
   }
 }
 
-uint8_t Control_PID(void){
-
-  int PWM_out;
-  int Encoder_Left, Encoder_Right;
-  int MOTO1, MOTO2;
-
-  if (USARTx_GetRxFlag() == 1){
-
-    // 1.采集编码器数据&陀螺仪角度信息
-    // 电机是相对安装，刚好相差180度，为了编码器输出极性一致，就需要对其中一个取反
-    Encoder_Left  = -Read_Speed(4); 
-    Encoder_Right = Read_Speed(2);
-
-    Control_GetAngle();
-    Pick_Up_Test();
-
-    // 2.将数据压入闭环控制中，计算出控制输出量
-    Velocity_out=Velocity(Target_Speed,Encoder_Left,Encoder_Right);                 // 速度环
-    Vertical_out=Vertical(Velocity_out+Med_Angle,euler.Roll, gyro.gyro_x);			    // 直立环
-    Turn_out=Turn(gyro.gyro_z, Turn_Speed);	
-
-    // PWM_out = Velocity_out;
-    PWM_out=Vertical_out;//最终输出
-  
-    // 3.把控制输出量加载到电机上，完成最终控制
-    MOTO1 = PWM_out-Turn_out; // 左电机
-    MOTO2 = PWM_out+Turn_out; // 右电机
-    Limit(&MOTO1,&MOTO2);     // PWM限幅
-
-    if (Pick_Up_Flag == 1) Load(MOTO1,MOTO2);        // 加载到电机上
-    else Load(0,0);
-
-    return 1;
-  }
-  return 0;
-}

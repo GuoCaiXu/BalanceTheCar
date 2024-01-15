@@ -8,6 +8,7 @@ void Gyro_USART_Config(void){
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
 
+    // 1. GPIO初始化
     GPIO_InitTypeDef    GPIO_InitStructure;
     GPIO_InitStructure.GPIO_Pin = Gyro_USART_TX_GPIO_PIN;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
@@ -18,6 +19,7 @@ void Gyro_USART_Config(void){
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
+    // 2. 串口初始化
     USART_InitTypeDef   USART_InitStructure;
     USART_InitStructure.USART_BaudRate = 115200;                                        //配置波特率
     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;     //硬件流控制选择
@@ -26,6 +28,17 @@ void Gyro_USART_Config(void){
     USART_InitStructure.USART_StopBits = USART_StopBits_1;                              //停止位长度
     USART_InitStructure.USART_WordLength = USART_WordLength_8b;                         //配置字长
     USART_Init(USART2, &USART_InitStructure);
+
+    // 3. 中断初始化
+    NVIC_InitTypeDef    NVIC_InitStructure;
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+
+    // 陀螺仪串口
+    NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    NVIC_Init(&NVIC_InitStructure);
 
     //串口接收中断需要用的
     USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
@@ -37,24 +50,20 @@ void Gyro_USART_Config(void){
 void Gyro_Init(void){
 
     Gyro_USART_Config();
-    Gyro_WriteCmd(0x52);
-    Gyro_WriteCmd(0x61);
-    Gyro_WriteCmd(0x63);
-    Gyro_WriteCmd(0x65);
 }
 
 // 获取角度 角速度 加速度
 void Control_GetAngle(Gyro *gyro, EulerAngle *euler, Acceleration *acc){
 
-    acc->a_x     = ((int16_t)((AngleGyro_Arr[1] << 8) | AngleGyro_Arr[0]) / 32768.0f) * 156.8f;
-    acc->a_y     = ((int16_t)((AngleGyro_Arr[3] << 8) | AngleGyro_Arr[2]) / 32768.0f) * 156.8f;
-    acc->a_z     = ((int16_t)((AngleGyro_Arr[5] << 8) | AngleGyro_Arr[4]) / 32768.0f) * 156.8f;
-    gyro->gyro_x = ((int16_t)((AngleGyro_Arr[7] << 8) | AngleGyro_Arr[6]) / 32768.0f) * 2000.0f;
-    gyro->gyro_y = ((int16_t)((AngleGyro_Arr[9] << 8) | AngleGyro_Arr[8]) / 32768.0f) * 2000.0f;
-    gyro->gyro_z = ((int16_t)((AngleGyro_Arr[11] << 8) | AngleGyro_Arr[10]) / 32768.0f) * 2000.0f;
-    euler->Roll  = ((int16_t)((AngleGyro_Arr[13] << 8) | AngleGyro_Arr[12]) / 32768.0f) * 180.0f;
-    euler->Pitch = ((int16_t)((AngleGyro_Arr[15] << 8) | AngleGyro_Arr[14]) / 32768.0f) * 180.0f;
-    euler->Yaw   = ((int16_t)((AngleGyro_Arr[17] << 8) | AngleGyro_Arr[16]) / 32768.0f) * 180.0f;
+    acc->a_x     = ((int16_t)((AngleGyro_Arr[1] << 8) | AngleGyro_Arr[0]) / 32768.0f) * 156;
+    acc->a_y     = ((int16_t)((AngleGyro_Arr[3] << 8) | AngleGyro_Arr[2]) / 32768.0f) * 156;
+    acc->a_z     = ((int16_t)((AngleGyro_Arr[5] << 8) | AngleGyro_Arr[4]) / 32768.0f) * 156;
+    gyro->gyro_x = ((int16_t)((AngleGyro_Arr[7] << 8) | AngleGyro_Arr[6]) / 32768.0f) * 2000;
+    gyro->gyro_y = ((int16_t)((AngleGyro_Arr[9] << 8) | AngleGyro_Arr[8]) / 32768.0f) * 2000;
+    gyro->gyro_z = ((int16_t)((AngleGyro_Arr[11] << 8) | AngleGyro_Arr[10]) / 32768.0f) * 2000;
+    euler->Roll  = ((int16_t)((AngleGyro_Arr[13] << 8) | AngleGyro_Arr[12]) / 32768.0f) * 180;
+    euler->Pitch = ((int16_t)((AngleGyro_Arr[15] << 8) | AngleGyro_Arr[14]) / 32768.0f) * 180;
+    euler->Yaw   = ((int16_t)((AngleGyro_Arr[17] << 8) | AngleGyro_Arr[16]) / 32768.0f) * 180;
     memset(AngleGyro_Arr, 18, 0x00);
 }
 
@@ -114,17 +123,4 @@ void USART2_IRQHandler(void){
         }
         USART_ClearITPendingBit(USART2, USART_IT_RXNE);
     }
-}
-
-void Gyro_WriteByte(uint8_t Byte){
-
-    USART_SendData(USART2, Byte);
-    while(USART_GetFlagStatus(USART2, USART_FLAG_TXE) == RESET);
-}
-
-void Gyro_WriteCmd(uint8_t Cmd){
-
-    Gyro_WriteByte(0xFF);
-    Gyro_WriteByte(0xAA);
-    Gyro_WriteByte(Cmd);
 }

@@ -1,3 +1,13 @@
+/*
+ * @Author: xgc030920@outlook.com
+ * @Date: 2024-01-15 20:19:46
+ * @LastEditors: xgc030920@outlook.com
+ * @LastEditTime: 2024-01-15 20:28:16
+ * @FilePath: \Project_EIDEc:\SyncFile\03-Project\04-平衡小车C8T6\代码\平衡小车V1.1\Hardware\gyro\gyro.h
+ * @Description: 
+ * 
+ * Copyright (c) 2024 by ${git_name_email}, All Rights Reserved. 
+ */
 # ifndef _GYRO_H
 # define _GYRO_H
 
@@ -34,6 +44,5 @@ typedef struct{
 void Gyro_Init(void);
 uint8_t Gyro_GetRxFlag(void);
 void Control_GetAngle(Gyro *gyro, EulerAngle *euler, Acceleration *acc);
-void Gyro_WriteCmd(uint8_t Cmd);
 
 # endif

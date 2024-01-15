@@ -5,10 +5,11 @@
 
 # include "stdio.h"
 # include "string.h"
+# include "stdbool.h"
 
 # include "./delay/bsp_delay.h"
 # include "./oled/oled.h"
-# include "./uart/bsp_uart.h"
+# include "./gyro/gyro.h"
 # include "./motor/motor.h"
 # include "./control/control.h"
 # include "./motor/motor_encoder.h"

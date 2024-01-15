@@ -24,13 +24,16 @@ void Encoder_TIM2_Init(void){
     TIM_TimeBaseInitStructure.TIM_Prescaler = 0;
     TIM_TimeBaseInit(TIM2, &TIM_TimeBaseInitStructure);
 
-    /*4.编码器配置: 定时器2，模式3，上上升沿*/
-    TIM_EncoderInterfaceConfig(TIM2, TIM_EncoderMode_TI12, TIM_ICPolarity_Rising, TIM_ICPolarity_Rising);
-
-    /*5.输入捕获配置*/
+    /*4.输入捕获配置*/
     TIM_ICStructInit(&TIM_ICInitStructure);
+    TIM_ICInitStructure.TIM_Channel = TIM_Channel_1;
     TIM_ICInitStructure.TIM_ICFilter = 10;          // 滤波器设置为10
     TIM_ICInit(TIM2, &TIM_ICInitStructure);
+    TIM_ICInitStructure.TIM_Channel = TIM_Channel_2;
+    TIM_ICInit(TIM2, &TIM_ICInitStructure);
+
+    /*5.编码器配置: 定时器2，模式3，上上升沿*/
+    TIM_EncoderInterfaceConfig(TIM2, TIM_EncoderMode_TI12, TIM_ICPolarity_Rising, TIM_ICPolarity_Rising);
 
     /*6.清除定时器溢出更新标志位(清除计数值)*/
     TIM_ClearFlag(TIM2, TIM_FLAG_Update);
@@ -74,7 +77,10 @@ void Encoder_TIM4_Init(void){
 
     /*5.输入捕获配置*/
     TIM_ICStructInit(&TIM_ICInitStructure);
+    TIM_ICInitStructure.TIM_Channel = TIM_Channel_1;
     TIM_ICInitStructure.TIM_ICFilter = 10;          // 滤波器设置为10
+    TIM_ICInit(TIM4, &TIM_ICInitStructure);
+    TIM_ICInitStructure.TIM_Channel = TIM_Channel_2;
     TIM_ICInit(TIM4, &TIM_ICInitStructure);
 
     /*6.清除定时器溢出更新标志位(清除计数值)*/
@@ -90,7 +96,7 @@ void Encoder_TIM4_Init(void){
     TIM_Cmd(TIM4, ENABLE);
 }
 
-void Encoder_Motor_Init(void){
+void Encoder_Init(void){
 
     Encoder_TIM2_Init();
     Encoder_TIM4_Init();

@@ -3,4 +3,6 @@
 
 # include "main.h"
 
+uint8_t Control_PID(void);
+
 # endif

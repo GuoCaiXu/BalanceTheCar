@@ -35,7 +35,8 @@
 ..\output\bsp_usrt.o: ..\Sys\./delay/bsp_delay.h
 ..\output\bsp_usrt.o: ..\Hardware\./oled/oled.h
 ..\output\bsp_usrt.o: ..\Hardware\./uart/bsp_uart.h
-..\output\bsp_usrt.o: ..\Hardware\./motor/motor.h
+..\output\bsp_usrt.o: ..\Hardware\./gyro/gyro.h
 ..\output\bsp_usrt.o: ..\User\main.h
+..\output\bsp_usrt.o: ..\Hardware\./motor/motor.h
 ..\output\bsp_usrt.o: ..\Hardware\./control/control.h
 ..\output\bsp_usrt.o: ..\Hardware\./motor/motor_encoder.h

@@ -3,6 +3,8 @@
         "stm32f10x.h": "c",
         "oled.h": "c",
         "main.h": "c",
-        "control.h": "c"
+        "control.h": "c",
+        "motor.h": "c",
+        "gyro.h": "c"
     }
 }
