@@ -27,13 +27,13 @@ void PWM_Init(void){
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
     TIM_OCInitStructure.TIM_Pulse = 0;
     TIM_OC1Init(TIM1,&TIM_OCInitStructure);
-	TIM_OC4Init(TIM1,&TIM_OCInitStructure);
+		TIM_OC4Init(TIM1,&TIM_OCInitStructure);
 
     TIM_CtrlPWMOutputs(TIM1,ENABLE);
 
     TIM_OC1PreloadConfig(TIM1,TIM_OCPreload_Enable);
-	TIM_OC4PreloadConfig(TIM1,TIM_OCPreload_Enable);
-	TIM_ARRPreloadConfig(TIM1,ENABLE);
+		TIM_OC4PreloadConfig(TIM1,TIM_OCPreload_Enable);
+		TIM_ARRPreloadConfig(TIM1,ENABLE);
 
     TIM_Cmd(TIM1, ENABLE);
 }
